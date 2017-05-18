@@ -16,3 +16,9 @@ Configuration goes in *config.json*
 * *jenkins_user* - Username to authenticate with Jenkins.
 * *jenkins_token* - Token to authenticate with Jenkins.
 
+### Contributint
+
+#### Tests
+
+Tests are located in the *test/* directory. Run tests with `nosetests`. 
+

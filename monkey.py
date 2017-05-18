@@ -5,6 +5,8 @@ import subprocess
 import datetime
 import json
 
+from execute import execute_shell
+
 root_dir = os.path.dirname(os.path.realpath(__file__))
 
 with open(os.path.join(root_dir, 'config.json')) as f:
@@ -23,6 +25,5 @@ def push_empty_commit(repo):
     git -C {repo} commit -m "Pipeline Monkey - {time}";
     git -C {repo} push;
     """.format(repo=repo, time=time)
-    subprocess.run(['sh', '-c', script])
+    return execute_shell(script, 'Pushing empty commit to {}'.format(repo))
 
-push_empty_commit('test')
