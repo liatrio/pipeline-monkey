@@ -1,29 +1,36 @@
 #!/usr/bin/env python3
 
-import os
-import subprocess
-import datetime
-import json
+#
+# CLI script for Pipeline Monkey
+#
 
-from execute import execute_shell
+import click
+from config import MONKEY_ROOT, MONKEY_CONFIG
+from commit import get_repos, push_empty_commit
 
-root_dir = os.path.dirname(os.path.realpath(__file__))
+@click.group()
+def cli():
+    pass
 
-with open(os.path.join(root_dir, 'config.json')) as f:
-    config = json.load(f)
+@cli.command()
+@click.option('--repos-dir', default=MONKEY_CONFIG['repos-dir'], help='Path to git repos directory')
+@click.option('--count', default=1, help='Number of commits to apply')
+@click.option('--repos', help='Repos to create commits in (default all)')
+def commit(repos_dir, count, repos):
+    if not repos:
+        repos = get_repos(repos_dir)
+    else:
+        repos = repos.split()
+    for repo_name in repos:
+        for _ in range(count):
+            push_empty_commit(repos_dir, repo_name)
 
-def get_repos():
-    res = subprocess.run(['ls', config['repos_dir']], stdout=subprocess.PIPE)
-    return res.stdout.decode('utf-8').split()
+def create_build_job():
+    pass
 
-def push_empty_commit(repo):
-    repo = os.path.join(config['repos_dir'], repo)
-    time = datetime.datetime.now().strftime('%c')
-    script = """
-    echo Empty Commit - {time} >>{repo}/monkey.log;
-    git -C {repo} add {repo}/monkey.log;
-    git -C {repo} commit -m "Pipeline Monkey - {time}";
-    git -C {repo} push;
-    """.format(repo=repo, time=time)
-    return execute_shell(script, 'Pushing empty commit to {}'.format(repo))
+def trigger_build_job():
+    pass
+
+if __name__ == '__main__':
+    cli()
 

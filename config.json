@@ -1,6 +1,6 @@
 {
-  "repos_dir": "/Users/liatrio/work/PipelineMonkey/repos",
-  "jenkins_url": "",
-  "jenkins_user": "",
-  "jenkins_token": ""
+  "repos-dir": "/Users/liatrio/work/PipelineMonkey/repos",
+  "jenkins-url": "",
+  "jenkins-user": "",
+  "jenkins-token": ""
 }

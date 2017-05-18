@@ -7,6 +7,13 @@ A tool for exercising CI pipelines.
 * Commit and push changes to git repos (coming soon)
 * Create and trigger Jenkins build jobs (coming soon)
 
+### Setup
+
+* Create a [virtualenv](http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/) with python3.5: `virtualenv -p <path/to/python3.5> venv; source venv/bin/activate`
+* `pip install -r requirement.txt`
+* Create a directory containing  git repos for Pipeline Monkey to commit/push to.
+* Edit config.json (see next section)
+
 ### Configuration
 
 Configuration goes in *config.json*
@@ -16,7 +23,8 @@ Configuration goes in *config.json*
 * *jenkins_user* - Username to authenticate with Jenkins.
 * *jenkins_token* - Token to authenticate with Jenkins.
 
-### Contributint
+
+### Contributing
 
 #### Tests
 
