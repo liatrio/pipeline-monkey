@@ -1,5 +1,11 @@
-import subprocess
+#
+# Functions for executing scripts
+#     - Local shell scripts
+#     - Remote Jenkins scripts (groovy) via the Jenkins api
+#
 
+import subprocess
+import click
 
 class ExecuteException(Exception):
     def __init__(self, error_msg, error_code):
@@ -23,12 +29,12 @@ def execute_shell_with_output(script, msg=None):
     Wrapper for `execute_shell` that provides console output.
     """
     if msg:
-        print(msg)
-        print('-'*30)
+        click.echo(msg)
+        click.echo('-'*30)
     try:
         output = execute_shell(script)
     except ExecuteException as e:
-        print('Error ({}): {}'.format(e.error_code, e.error_msg))
+        click.secho('Error ({}): {}'.format(e.error_code, e.error_msg), fg='red')
         raise e
     else:
-        print(output)
+        click.secho(output, fg='green')
