@@ -3,32 +3,21 @@
 #
 
 import os
-import subprocess
 import datetime
+import git
 
-from execute import execute_shell, execute_shell_with_output
-
-def get_repos(repos_dir):
+def push_empty_commit(repo_path, remote='origin', branch='master'):
     """
-    Return a list of repos found in the `repos_dir` config attribute.
+    Adds a timestamp to the repo's monkey.log file and commits/pushes to specified branch
     """
-    res = execute_shell('ls {}'.format(repos_dir))
-    return res.split()
-
-def push_empty_commit(repos_dir, repo_name):
-    """
-    Pushes an empty commit to the default upstream of a repo,
-    Adds a timestamped message to the monkey.log file of the repo
-    """
-    if not repo_name in get_repos(repos_dir):
-        raise ValueError('repository {} not found in repos dir ({})'.format(repo_name, repos_dir))
-    repo = os.path.join(repos_dir, repo_name)
-    time = datetime.datetime.now().strftime('%c')
-    script = """
-    echo Empty Commit - {time} >>{repo}/monkey.log;
-    git -C {repo} add {repo}/monkey.log;
-    git -C {repo} commit -m "Pipeline Monkey - {time}";
-    git -C {repo} push;
-    """.format(repo=repo, time=time)
-    return execute_shell_with_output(script, 'Pushing empty commit to {}'.format(repo_name))
+    repo = git.Repo(repo_path)
+    repo.git.checkout(branch)
+    logfile = os.path.join(repo_path, 'monkey.log')
+    timestamp = datetime.datetime.now().strftime('%c')
+    logentry = 'Empty Commit - {}'.format(timestamp)
+    with open(logfile, 'a') as f:
+        print(logentry, file=f)
+    repo.git.add(logfile)
+    repo.git.commit(logfile, m=logentry)
+    repo.git.push(remote, branch)
 

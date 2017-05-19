@@ -1,5 +1,15 @@
 {
-  "repos-dir": "/Users/liatrio/work/PipelineMonkey/repos",
+  "repos": [
+    {
+      "path": "/Users/liatrio/work/PipelineMonkey/repos/spring-petclinic",
+      "branch": "master"
+    },
+    {
+      "url": "git@github.com:ebracho/test.git",
+      "branch": "pipeline-monkey",
+      "remote": "origin"
+    }
+  ],
   "jenkins-url": "",
   "jenkins-user": "",
   "jenkins-token": ""
