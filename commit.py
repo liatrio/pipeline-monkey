@@ -1,5 +1,5 @@
 #
-# Functions for listing, commiting and pushing from configured git repos
+# Functions for pushing commits to git repos
 #
 
 import os

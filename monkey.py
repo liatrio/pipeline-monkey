@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# CLI script for Pipeline Monkey
+# CLI 
 #
 
 import time
@@ -20,7 +20,7 @@ def cli():
 @click.option('--repos', help='Comma-seperated list of repos to create commits in')
 @click.option('--interval', default='5', help='Interval between commits (minutes). Provide a range (X,Y) to wait a random amount of time between commits')
 def commit(count, repos, interval):
-    # Parse interval and create wait function
+    # Parse interval and build wait function
     def wait():
         if ',' in interval:
             waittime = random.randrange(*interval.split(',').map(int))*60
@@ -29,28 +29,33 @@ def commit(count, repos, interval):
         click.echo('Waiting {} seconds until next round of commits'.format(waittime))
         time.sleep(waittime)
 
-    # Parse repos
-    if repos is None:
-        repos = MONKEY_CONFIG['repos']
-    else:
-        repos = list(filter(lambda r: r['name'] in repos, MONKEY_CONFIG['repos']))
-
+    # Parse and lookup repos
+    def parse_repos():
+        if repos is None:
+            yield from MONKEY_CONFIG['repos']
+        else:
+            for repo in repos.split(','):
+                repo_config = next((rc for rc in MONKEY_CONFIG['repos'] if rc['name'] == repo), None)
+                if not repo_config:
+                    click.secho('Unknown repo {}'.format(repo), fg='red')
+                    exit(1)
+                else:
+                    yield repo_config
+            
     # Push commits on interval
+    repo_configs = list(parse_repos())
     for i in range(count):
         if i > 0:
             wait()
-        for repo in repos:
-            click.secho('Pushing empty commit in {}'.format(repo['name']), fg='green')
-            push_empty_commit(repo['path'], repo.get('remote', 'origin'), repo.get('branch', 'master'))
+        for rc in repo_configs:
+            click.secho('Pushing empty commit in {}'.format(rc['name']), fg='green')
+            push_empty_commit(rc['path'], rc.get('remote', 'origin'), rc.get('branch', 'master'))
 
     click.echo('Finished pushing commits')
 
 
 
 def create_build_job():
-    pass
-
-def trigger_build_job():
     pass
 
 if __name__ == '__main__':
