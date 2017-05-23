@@ -6,6 +6,9 @@ folder("pipeline-monkey/{{ repo_name }}")
     scm {
       git("{{ repo_url }}", "{{ branch }}")
     }
+    triggers {
+      scm('H/5 * * * *')
+    }
     steps {
       maven("{{ goal }}")
     }
