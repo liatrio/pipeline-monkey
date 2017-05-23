@@ -25,7 +25,7 @@ def escape_xml(s):
 
 def load_template(template_name):
     """
-    Load a job tempalte from the job_templates directory.
+    Load a job template from the job_templates directory.
     """
     template_path = os.path.join(MONKEY_ROOT, 'templates', '{}.jinja2'.format(template_name))
     with open(template_path) as f:
@@ -53,21 +53,30 @@ def generate_maven_jobs(repo_name, repo_url, branch, job_count, goal):
     params = {
         'repo_name': repo_name,
         'repo_url':  repo_url,
-        'job_count': job_count,
         'branch':    branch,
+        'job_count': job_count,
         'goal':      goal,
     }
     job_dsl = maven_dsl_template.render(**params)
     execute_seed_job(job_dsl)
 
-def clean():
+def clean(repos=None):
     """
-    Delete all pipeline-monkey generated jobs
+    Delete generated jobs for each repo (default all reapos).
+    Also deletes the seed job if it exists
     """
-    for job in server.get_all_jobs():
-        if job['fullname'].startswith('pipeline-monkey/'):
-            server.delete_job(job['fullname'])
-
+    if type(repos) is str:
+        repos = [repos]
+    # Delete Repos
+    if repos:
+        for repo in repos:
+            repo_folder = 'pipeline-monkey/{}'.format(repo)
+            if server.job_exists(repo_folder):
+                server.delete_job(repo_folder)
+    else:
+        if server.job_exists('pipeline-monkey'):
+            server.delete_job('pipeline-monkey')
+    # Delete seedjob
     if server.job_exists('pipeline-monkey-seedjob'):
         server.delete_job('pipeline-monkey-seedjob')
 
