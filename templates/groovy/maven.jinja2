@@ -1,0 +1,13 @@
+folder("pipeline-monkey")
+folder("pipeline-monkey/{{ repo_name }}")
+1.upto({{ job_count }}) {
+  jobNumber = Integer.toString(it).padLeft(3,'0')
+  job("pipeline-monkey/{{ repo_name }}/{{ repo_name }}-{{ branch }}-${jobNumber}") {
+    scm {
+      git("{{ repo_url }}", "{{ branch }}")
+    }
+    steps {
+      maven("{{ goal }}")
+    }
+  }
+}
