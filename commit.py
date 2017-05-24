@@ -11,7 +11,9 @@ def push_empty_commit(repo_path, remote='origin', branch='master'):
     Adds a timestamp to the repo's monkey.log file and commits/pushes to specified branch
     """
     repo = git.Repo(repo_path)
+    repo.git.fetch(remote)
     repo.git.checkout(branch)
+    repo.git.pull(remote, branch)
     logfile = os.path.join(repo_path, 'monkey.log')
     timestamp = datetime.datetime.now().strftime('%c')
     logentry = 'Empty Commit - {}'.format(timestamp)
