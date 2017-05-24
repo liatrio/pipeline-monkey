@@ -60,23 +60,24 @@ def generate_maven_jobs(repo_name, repo_url, branch, job_count, goal):
     job_dsl = maven_dsl_template.render(**params)
     execute_seed_job(job_dsl)
 
-def clean(repos=None):
+def clean(repo=None, branch=None):
     """
-    Delete generated jobs for each repo (default all reapos).
+    Delete generated for a specified repo/branch. 
+    If no branch is specified, all jobs for all branches are deleted
+    If no repo is specified, all jobs for all repos/branches are deleted
     Also deletes the seed job if it exists
     """
-    if type(repos) is str:
-        repos = [repos]
-    # Delete Repos
-    if repos:
-        for repo in repos:
-            repo_folder = 'pipeline-monkey/{}'.format(repo)
-            if server.job_exists(repo_folder):
-                server.delete_job(repo_folder)
+    if repo:
+        if branch:
+            folder = 'pipeline-monkey/{}'.format(repo)
+        else:
+            folder = 'pipeline-monkey/{}/{}'.format(repo, branch)
     else:
-        if server.job_exists('pipeline-monkey'):
-            server.delete_job('pipeline-monkey')
-    # Delete seedjob
+        folder = 'pipeline-monkey'
+
+    if server.job_exists(folder):
+        server.delete_job(folder)
+
     if server.job_exists('pipeline-monkey-seedjob'):
         server.delete_job('pipeline-monkey-seedjob')
 

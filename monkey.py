@@ -32,6 +32,13 @@ def parse_repos(repos):
             else:
                 yield repo_config
 
+def parse_repo_config(repo):
+    repo_config = next((rc for rc in MONKEY_CONFIG['repos'] if rc['name'] == repo), None)
+    if repo_config is None:
+        raise ValueError('Git repo {} is not configured'.format(repo))
+    else:
+        return repo_config
+
 @click.group()
 @click.option('--log-level', default='DEBUG', help='Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
 @click.option('--log-file', help='Path to log file.')
@@ -48,14 +55,20 @@ def cli(log_level, log_file):
 
 
 @cli.command('commit', help='Automatically commit and push changes to git repositories.')
+@click.argument('repo', nargs=1)
+@click.option('--branch', default='master', help='Branch to commit in (default master)')
 @click.option('--count', default='1', help='Maximum number of commits to push (default 1).')
-@click.option('--repos', help='Comma-seperated list of repos to create commits in')
 @click.option('--interval', default='5', help='Interval between commits in minutes (default 1). Provide a range (X,Y) to wait a random amount of time between commits')
 @click.option('--timeout', default='60', help='Maximum amount of time (minutes) to commit before exiting (default 60)')
-def commit(count, repos, interval, timeout):
+def commit(repo, branch, count, interval, timeout):
     startime = datetime.now()
     total_commits = 0
-    repo_configs = list(parse_repos(repos))
+
+    try:
+        repo_config = parse_repo_config(repo)
+    except ValueError as e:
+        logger.error(e)
+        exit(1)
 
     def stoptime_reached():
         return timeout and (datetime.now() > (startime + timedelta(minutes=int(timeout))))
@@ -67,9 +80,8 @@ def commit(count, repos, interval, timeout):
         return stoptime_reached() or commit_count_reached()
 
     def start_message():
-        repo_names = ','.join(map(lambda rc: rc['name'], repo_configs))
         logger.debug('Starting autocommit sequence.')
-        logger.debug('Committing to {} every {} minutes up to {} commits or until timeout is reached in {} minutes'.format(repo_names, interval, count, timeout))
+        logger.debug('Committing to {} on branch {} every {} minutes up to {} commits or until timeout is reached in {} minutes'.format(repo, branch, interval, count, timeout))
 
     def summary():
         if commit_count_reached():
@@ -97,9 +109,8 @@ def commit(count, repos, interval, timeout):
 
     # Push commits on interval
     while True:
-        for rc in repo_configs:
-            push_empty_commit(rc['path'], rc.get('remote', 'origin'), rc.get('branch', 'master'))
-            logger.info('Pushed empty commit to {}'.format(rc['name']))
+        push_empty_commit(repo_config['path'], branch=branch)
+        logger.info('Pushed empty commit to {}-{}'.format(repo, branch))
         total_commits += 1
         if should_terminate():
             break
@@ -108,31 +119,33 @@ def commit(count, repos, interval, timeout):
 
     summary()
 
-@cli.command('generate-jobs', help='Generate jobs from predefined templates')
-@click.option('--repos', help='Comma-seperated list of repos to generate jobs for')
+@cli.command('generate', help='Generate jobs from predefined templates')
+@click.argument('repo', nargs=1)
+@click.option('--branch', default='master', help='Branch to poll in job(s)')
 @click.option('--count', default=1, help='Number of jobs to make (per repo)')
-def generate_jobs(repos, count):
-    repo_configs = parse_repos(repos)
-    for repo_config in repo_configs:
-        if repo_config['job_template'] == 'maven':
-            goal = repo_config.get('goal', None)
-            if not goal:
-                logger.warning('Goal must be specified for maven job ({})'.format(repo_config['name']))
-                exit(1)
-            else:
-                generate_maven_jobs(repo_config['name'], repo_config['url'], 
-                    repo_config.get('branch', 'master'), count, goal)
-                logger.info('Generated {} jobs for {}'.format(count, repo_config['name']))
+def generate(repo, branch, count):
+    count = int(count)
 
-@cli.command('delete-jobs', help='Delete generated jobs from Jenkins')
-@click.option('--repos', help='Comma seperated list of repos from which to delete jobs (default all repos)')
-def delete_jobs(repos):
-    if not repos:
-        clean()
-    else:
-        all(parse_repos(repos))
-        clean(repos)
+    try:
+        repo_config = parse_repo_config(repo)
+    except ValueError as e:
+        logger.error(e)
+        exit(1)
 
+    def handle_maven():
+        goal = repo_config.get('goal', 'test')
+        generate_maven_jobs(repo_config['name'], repo_config['url'], branch, count, goal)
+        logger.info('Generated {} job(s) for {} {}'.format(count, repo, branch))
+
+    if repo_config['job_template'] == 'maven':
+        handle_maven()
+
+
+@cli.command('clean', help='Delete generated jobs from Jenkins')
+@click.option('--repo', help='Delete jobs only for a specific repo')
+@click.option('--branch', help='Delete jobs for only a specific branch (must also specify repo)')
+def delete_jobs(repo=None, branch=None):
+    clean(repo, branch)
 
 if __name__ == '__main__':
     cli()
