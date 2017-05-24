@@ -16,22 +16,6 @@ from jenkins_jobs import generate_maven_jobs, clean
 
 logger = logging.getLogger('pipeline_monkey')
 
-def parse_repos(repos):
-    """
-    Parse a comma-seperated list of repos and return their configs
-    If list is empty, return all repo configs
-    """
-    if not repos:
-        yield from MONKEY_CONFIG['repos']
-    else:
-        for repo in repos.split(','):
-            repo_config = next((rc for rc in MONKEY_CONFIG['repos'] if rc['name'] == repo), None)
-            if not repo_config:
-                logger.error('Unknown repo {}'.format(repo))
-                exit(1)
-            else:
-                yield repo_config
-
 def parse_repo_config(repo):
     repo_config = next((rc for rc in MONKEY_CONFIG['repos'] if rc['name'] == repo), None)
     if repo_config is None:
@@ -40,9 +24,14 @@ def parse_repo_config(repo):
         return repo_config
 
 @click.group()
-@click.option('--log-level', default='DEBUG', help='Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
+@click.option('--log-level', help='Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
 @click.option('--log-file', help='Path to log file.')
 def cli(log_level, log_file):
+    # Parse logging config
+    log_level = log_level or MONKEY_CONFIG.get('log_level', None) or 'INFO'
+    log_file = log_file or MONKEY_CONFIG.get('log_file', None) 
+
+    # Setup logging
     log_level = logging.getLevelName(log_level.upper())
     logger.setLevel(log_level)
     formatter = logging.Formatter('[%(asctime)s-%(levelname)s] %(message)s')
