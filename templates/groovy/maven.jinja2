@@ -1,13 +1,14 @@
 folder("pipeline-monkey")
 folder("pipeline-monkey/{{ repo_name }}")
+folder("pipeline-monkey/{{ repo_name }}/{{ branch }}")
 1.upto({{ job_count }}) {
   jobNumber = Integer.toString(it).padLeft(3,'0')
-  job("pipeline-monkey/{{ repo_name }}/{{ repo_name }}-{{ branch }}-${jobNumber}") {
+  job("pipeline-monkey/{{ repo_name }}/{{ branch }}/{{ repo_name }}-{{ branch }}-${jobNumber}") {
     scm {
       git("{{ repo_url }}", "{{ branch }}")
     }
     triggers {
-      scm('H/5 * * * *')
+      scm("H/5 * * * *")
     }
     steps {
       maven("{{ goal }}")

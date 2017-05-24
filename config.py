@@ -4,9 +4,12 @@
 
 import os
 import sys
+import logging
 import json
 import git
 import click
+
+logger = logging.getLogger('pipline_monkey')
 
 MONKEY_ROOT = os.path.dirname(os.path.realpath(__file__))
 MONKEY_DOTDIR = os.path.join(MONKEY_ROOT, '.monkey')
@@ -39,7 +42,7 @@ with open(os.path.join(MONKEY_ROOT, 'config.json')) as f:
     for repo in MONKEY_CONFIG['repos']:
         if 'path' not in repo:
             if 'url' not in repo:
-                click.echos('Error: "path" or "url" attributes must be specified for repos', fg='red')
+                logger.error('Error: "path" or "url" attributes must be specified for repos')
                 sys.exit(1)
             repo['name'], repo['path'] = clone_repo(repo['url'])
             repo['remote'] = repo['url']
