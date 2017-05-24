@@ -40,12 +40,10 @@ with open(os.path.join(MONKEY_ROOT, 'config.json')) as f:
     MONKEY_CONFIG = json.load(f)
     # Clone remote repos, derive repo names
     for repo in MONKEY_CONFIG['repos']:
-        if 'path' not in repo:
-            if 'url' not in repo:
-                logger.error('Error: "path" or "url" attributes must be specified for repos')
-                sys.exit(1)
+        if 'url' not in repo:
+            logger.error('url attribute is required for repos ({})'.format(repo))
+            sys.exit(1)
+        else:
             repo['name'], repo['path'] = clone_repo(repo['url'])
             repo['remote'] = repo['url']
-        else:
-            repo['name'] = os.path.basename(repo['path'])
 
