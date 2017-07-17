@@ -1,6 +1,6 @@
 # Pipeline Monkey
 
-A command line tool for exercising CI pipelines.
+A command line tool for simulating developer activity in a CI pipeline.
 
 ## Features:
 
